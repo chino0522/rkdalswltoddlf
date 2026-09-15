@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>민지 능력 시험</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        apricot: {
+                            50: '#FFF9F5',
+                            100: '#FFF5EE',
+                            200: '#FFE4D6',
+                            300: '#FFDAB9',
+                            400: '#FFA07A',
+                            500: '#FF8C69',
+                            600: '#E9967A',
+                            700: '#FF7F50',
+                            800: '#D95338',
+                            900: '#8B3A2B',
+                        }
+                    },
+                    fontFamily: {
+                        gowun: ['"Gowun Dodum"', 'sans-serif'],
+                        noto: ['"Noto Sans KR"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Gowun Dodum', 'Noto Sans KR', sans-serif;
+            background-color: #FFF5EE;
+            color: #333333;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(255, 140, 105, 0.15), 0 8px 10px -6px rgba(255, 127, 80, 0.1);
+        }
+        .btn-bounce:hover {
+            transform: translateY(-1px);
+        }
+        .btn-bounce:active {
+            transform: translateY(1px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-apricot-300 selection:text-apricot-900">
+
+    <!-- Header / Branding -->
+    <header class="w-full py-4 px-6 text-center border-b border-apricot-200 bg-white/60 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-md mx-auto flex items-center justify-center">
+            <span class="text-xl font-bold text-apricot-800 tracking-wider">
+                민지 능력 시험
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow flex items-center justify-center p-4 sm:p-6 my-auto">
+        <div id="app-container" class="w-full max-w-lg bg-white/95 backdrop-blur-sm rounded-3xl p-6 sm:p-8 card-shadow border border-apricot-200 transition-all duration-300">
+            
+            <!-- 1. LANDING PAGE -->
+            <div id="view-landing" class="space-y-6 text-center py-4">
+                <div>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-apricot-900 mt-2 mb-2 leading-tight">
+                        민지 능력 시험
+                    </h1>
+                    <p class="text-sm sm:text-base text-gray-600 mt-3">
+                        네가 너 자신에 대해 얼마나 아는지 테스트한다.<br>고생해라.
+                    </p>
+                </div>
+
+                <div class="bg-apricot-50 p-4 rounded-2xl border border-apricot-200 text-left text-xs sm:text-sm text-gray-700 space-y-2">
+                    <p class="font-bold text-apricot-900">
+                        주의사항
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                        <li>총 12문제다.</li>
+                        <li>8개 이상 맞혀야 통과다.</li>
+                        <li>중도 포기 없다. 끝까지 풀어라.</li>
+                    </ul>
+                </div>
+
+                <button id="btn-start" class="w-full py-4 bg-apricot-500 hover:bg-apricot-600 text-white font-bold rounded-2xl text-lg shadow-lg shadow-apricot-300/50 transition-all duration-200 btn-bounce">
+                    시험 시작
+                </button>
+            </div>
+
+            <!-- 2. QUIZ PAGE -->
+            <div id="view-quiz" class="hidden space-y-6">
+                <!-- Status Header -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-xs sm:text-sm font-semibold">
+                        <span id="quiz-progress-text" class="text-apricot-800">문제 1 / 12</span>
+                        <span id="quiz-score-status" class="text-gray-500">맞힌 문제: 0 | 틀린 문제: 0</span>
+                    </div>
+                    <!-- Gauge Bar -->
+                    <div class="w-full bg-apricot-100 h-2.5 rounded-full overflow-hidden">
+                        <div id="quiz-progress-bar" class="bg-apricot-500 h-full w-0 transition-all duration-300 rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Question Card -->
+                <div class="bg-apricot-50/80 p-5 rounded-2xl border border-apricot-200">
+                    <div class="flex items-start gap-2">
+                        <span id="q-badge" class="bg-apricot-500 text-white font-bold text-xs px-2 py-1 rounded-md shrink-0 mt-0.5">Q1</span>
+                        <h2 id="q-text" class="text-base sm:text-lg font-bold text-gray-800 leading-snug">
+                            질문 텍스트
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Options List -->
+                <div id="options-container" class="space-y-2.5">
+                    <!-- Dynamic Options -->
+                </div>
+
+                <!-- Action Button Container -->
+                <div id="action-container" class="pt-2">
+                    <button id="btn-next-question" class="hidden w-full py-3.5 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl shadow-md transition-all btn-bounce">
+                        다음 문제
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. RESULT PAGE -->
+            <div id="view-result" class="hidden space-y-6 text-center py-2">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-gray-800">시험 결과</h2>
+                    <div id="result-score-text" class="text-3xl font-black text-apricot-600 my-2">
+                        0점 (0 / 12)
+                    </div>
+                    <p id="result-message" class="text-sm text-gray-600">
+                        결과 메시지
+                    </p>
+                </div>
+
+                <!-- Notice Box -->
+                <div class="bg-apricot-100/70 p-4 rounded-2xl border border-apricot-300 text-center space-y-2">
+                    <p class="text-xs sm:text-sm font-bold text-apricot-900 leading-relaxed">
+                        이 화면 스크린샷 찍어서 나한테 보내.
+                    </p>
+                    <p class="text-xs text-gray-600">
+                        암호 코드 보내줌.
+                    </p>
+                </div>
+
+                <!-- Secret Code Entry -->
+                <div class="space-y-3 pt-2">
+                    <div class="flex gap-2">
+                        <input type="text" id="code-input" placeholder="암호 코드 입력" maxlength="6"
+                            class="flex-grow px-4 py-3 border-2 border-apricot-300 rounded-xl focus:outline-none focus:border-apricot-500 text-center text-lg font-bold tracking-widest text-gray-800 bg-apricot-50/30">
+                        <button id="btn-submit-code" class="px-5 py-3 bg-apricot-500 hover:bg-apricot-600 text-white font-bold rounded-xl shadow transition-all btn-bounce whitespace-nowrap">
+                            확인
+                        </button>
+                    </div>
+                    <p id="code-error" class="hidden text-xs text-red-500 font-medium text-left">
+                        어디서 찍으려고. 나만 안다. 연락해.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 4. COUNTDOWN PAGE -->
+            <div id="view-countdown" class="hidden space-y-6 text-center py-4">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-apricot-900 mt-2 mb-2">
+                        무슨 날일까?ㅎㅎ
+                        <br/>
+                        카운트다운 끝나면 다시 와ㅎㅎ
+                    </h2>
+                </div>
+
+                <!-- Timer Box -->
+                <div class="bg-gradient-to-br from-apricot-500 to-apricot-700 text-white p-6 rounded-3xl shadow-lg space-y-3">
+                    <div id="countdown-timer" class="text-2xl sm:text-3xl font-black tracking-wider font-mono">
+                        00일 00시간 00분 00초
+                    </div>
+                </div>
+
+                <!-- Debug/Preview Button
+                <div class="pt-2 border-t border-dashed border-apricot-200">
+                    <button id="btn-skip-countdown" class="text-xs text-apricot-600 underline hover:text-apricot-800 font-medium">
+                        [미리보기] 바로 이동
+                    </button>
+                </div> -->
+            </div>
+
+            <!-- 5. BIRTHDAY CELEBRATION PAGE -->
+            <div id="view-birthday" class="hidden space-y-6 text-center py-2">
+                <div class="space-y-2">
+                    <h1 class="text-2xl sm:text-3xl font-black text-apricot-900 leading-tight">
+                        생일 축하해
+                    </h1>
+                    <p class="text-xs sm:text-sm text-gray-600">
+                        환불 안 되니까 돌려주거나 안 쓸 생각하지 말고.
+                    </p>
+                </div>
+
+                <!-- Gift List -->
+                <div class="space-y-3 pt-2 text-left">
+                    <!-- Gift 1 -->
+                    <div class="bg-white p-4 rounded-2xl border border-apricot-200 shadow-sm flex items-center justify-between hover:border-apricot-400 transition-all">
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-800">올리브영</h4>
+                            <p class="text-xs text-gray-500">이걸로 산 화장품으로 화장하고 사진 꼭 보내줘야 함</p>
+                        </div>
+                        <button onclick="openGiftLink('https://sodagift.com/ko/welcome/gift-links/2265145?t=1AqveLSFA312sxcazihX')" class="px-4 py-2 bg-apricot-100 hover:bg-apricot-200 text-apricot-800 font-bold text-xs rounded-xl transition-colors shrink-0">
+                            받기
+                        </button>
+                    </div>
+
+                    <!-- Gift 2 -->
+                    <div class="bg-white p-4 rounded-2xl border border-apricot-200 shadow-sm flex items-center justify-between hover:border-apricot-400 transition-all">
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-800">배달의 민족</h4>
+                            <p class="text-xs text-gray-500">연어초밥 말고 다른거 먹어. 그건 나랑 같이 먹어야 됨</p>
+                        </div>
+                        <button onclick="openGiftLink('https://sodagift.com/ko/welcome/gift-links/2265132?t=B8JDI8GNBtnCNTkkMdYL')" class="px-4 py-2 bg-apricot-100 hover:bg-apricot-200 text-apricot-800 font-bold text-xs rounded-xl transition-colors shrink-0">
+                            받기
+                        </button>
+                    </div>
+
+                    <!-- Gift 3 -->
+                    <div class="bg-white p-4 rounded-2xl border border-apricot-200 shadow-sm flex items-center justify-between hover:border-apricot-400 transition-all">
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-800">GS25</h4>
+                            <p class="text-xs text-gray-500">바나나우유랑 하츄핑 젤리는 꼭 사먹기ㅎ</p>
+                        </div>
+                        <button onclick="openGiftLink('https://sodagift.com/ko/welcome/gift-links/2265127?t=TxNVIoAClMPUWLBYXjyh')" class="px-4 py-2 bg-apricot-100 hover:bg-apricot-200 text-apricot-800 font-bold text-xs rounded-xl transition-colors shrink-0">
+                            받기
+                        </button>
+                    </div>
+
+                    <!-- Gift 4 -->
+                    <div class="bg-white p-4 rounded-2xl border border-apricot-200 shadow-sm flex items-center justify-between hover:border-apricot-400 transition-all">
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-800">엄마는 외계인?</h4>
+                            <p class="text-xs text-gray-500">민초맛은 너만 먹어라</p>
+                        </div>
+                        <button onclick="openGiftLink('https://sodagift.com/ko/welcome/gift-links/2265722?t=32CS8A1jSlYMHrliJzop')" class="px-4 py-2 bg-apricot-100 hover:bg-apricot-200 text-apricot-800 font-bold text-xs rounded-xl transition-colors shrink-0">
+                            받기
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 1. Quiz Data Definition ---
+        const quizData = [
+            {
+                id: 1,
+                question: "민지의 생년월일은?",
+                options: [
+                    { text: "2005년 8월 11일", correct: false },
+                    { text: "2006년 9월 23일", correct: true },
+                    { text: "2006년 9월 15일", correct: false },
+                    { text: "2007년 9월 21일", correct: false }
+                ]
+            },
+            {
+                id: 2,
+                question: "민지 이름 중 민자의 알맞은 한자 뜻은?",
+                options: [
+                    { text: "민첩할 민", correct: false },
+                    { text: "망할 민", correct: false },
+                    { text: "화할 민", correct: true },
+                    { text: "옥돌 민", correct: false }
+                ]
+            },
+            {
+                id: 3,
+                question: "민지가 어릴 적 살던 지역의 이름은?",
+                options: [
+                    { text: "부산", correct: false },
+                    { text: "울산", correct: false },
+                    { text: "전주", correct: false },
+                    { text: "광주", correct: true }
+                ]
+            },
+            {
+                id: 4,
+                question: "민지가 좋아하는 떡볶이의 종류는?",
+                options: [
+                    { text: "국물 떡볶이", correct: false },
+                    { text: "간장 떡볶이", correct: false },
+                    { text: "기름 떡볶이", correct: false },
+                    { text: "걸죽하고 살짝 식고 떡에 양념이 베여서 푸석푸석 쫀득쫀득한 식감을 가진 떡볶이", correct: true }
+                ]
+            },
+            {
+                id: 5,
+                question: "민지는 민트초코를 좋아한다.",
+                options: [
+                    { text: "예", correct: true },
+                    { text: "아니오", correct: false }
+                ]
+            },
+            {
+                id: 6,
+                question: "민지의 핸드폰 브랜드 이름은?",
+                options: [
+                    { text: "삼성", correct: true },
+                    { text: "애플", correct: false },
+                    { text: "소니", correct: false },
+                    { text: "구글", correct: false }
+                ]
+            },
+            {
+                id: 7,
+                question: "민지가 고등학교 다닐 당시 취업박람회에서 '감정평가사'가 눈에 들어왔던 이유는?",
+                options: [
+                    { text: "오랫동안 꿈 꿔왔던 직업이어서", correct: false },
+                    { text: "가족/친인척 중 감정평가사가 계셔서", correct: false },
+                    { text: "이름 그대로 감정 평가와 연관된 직업으로 착각해서", correct: true },
+                    { text: "바보여서", correct: true }
+                ]
+            },
+            {
+                id: 8,
+                question: "민지가 고등학생 때, 친구에게 화장을 받고 나오는 길에 셀카를 찍었었다. 사진 속 옷차림과 머리 스타일은?",
+                options: [
+                    { text: "반묶음 / 오프숄더 니트", correct: false },
+                    { text: "긴 생머리 / 반팔", correct: false },
+                    { text: "단발 / 패딩", correct: false },
+                    { text: "똥머리 / 검정 삼색 추리닝", correct: true }
+                ]
+            },
+            {
+                id: 9,
+                question: "민지가 좋아하는 팝송의 제목은?",
+                options: [
+                    { text: "These Tears", correct: true },
+                    { text: "강남스타일", correct: false },
+                    { text: "Photograph", correct: false },
+                    { text: "Blue", correct: false }
+                ]
+            },
+            {
+                id: 10,
+                question: "민지의 혈액형은?",
+                options: [
+                    { text: "A형", correct: false },
+                    { text: "B형", correct: false },
+                    { text: "O형", correct: true },
+                    { text: "AB형", correct: false }
+                ]
+            },
+            {
+                id: 11,
+                question: "민지는 김빠진 탄산음료를 좋아한다.",
+                options: [
+                    { text: "예", correct: true },
+                    { text: "아니오", correct: false }
+                ]
+            },
+            {
+                id: 12,
+                question: "민지는 진호를 좋아한다.",
+                options: [
+                    { text: "예", correct: true },
+                    { text: "예", correct: true }
+                ]
+            }
+        ];
+
+        // --- 2. State Variables ---
+        let currentQuestionIndex = 0;
+        let correctCount = 0;
+        let wrongCount = 0;
+        let timerInterval = null;
+
+        // --- 3. DOM Elements ---
+        const views = {
+            landing: document.getElementById('view-landing'),
+            quiz: document.getElementById('view-quiz'),
+            result: document.getElementById('view-result'),
+            countdown: document.getElementById('view-countdown'),
+            birthday: document.getElementById('view-birthday')
+        };
+
+        // --- 4. Navigation Helper ---
+        function showView(viewName) {
+            Object.keys(views).forEach(key => {
+                views[key].classList.add('hidden');
+            });
+            views[viewName].classList.remove('hidden');
+        }
+
+        // --- 5. Link Opener Helper ---
+        function openGiftLink(url) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+
+        // --- 6. Quiz Logic ---
+        document.getElementById('btn-start').addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            correctCount = 0;
+            wrongCount = 0;
+            showView('quiz');
+            loadQuestion();
+        });
+
+        function loadQuestion() {
+            const q = quizData[currentQuestionIndex];
+
+            document.getElementById('quiz-progress-text').innerText = `문제 ${currentQuestionIndex + 1} / ${quizData.length}`;
+            document.getElementById('quiz-score-status').innerText = `맞힌 문제: ${correctCount} | 틀린 문제: ${wrongCount}`;
+            
+            const progressPercent = ((currentQuestionIndex + 1) / quizData.length) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${progressPercent}%`;
+
+            document.getElementById('q-badge').innerText = `Q${currentQuestionIndex + 1}`;
+            document.getElementById('q-text').innerText = q.question;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const btnNext = document.getElementById('btn-next-question');
+            btnNext.classList.add('hidden');
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left p-4 rounded-xl border-2 transition-all flex items-center justify-between font-medium text-sm sm:text-base border-apricot-200 bg-white hover:border-apricot-400 text-gray-700`;
+                
+                btn.innerHTML = `
+                    <span class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-full border border-apricot-300 flex items-center justify-center text-xs text-apricot-800 font-bold bg-apricot-50 shrink-0">
+                            ${idx + 1}
+                        </span>
+                        <span>${opt.text}</span>
+                    </span>
+                    <span class="result-icon font-bold text-lg hidden"></span>
+                `;
+
+                btn.onclick = () => handleOptionSelect(idx);
+                container.appendChild(btn);
+            });
+        }
+
+        function handleOptionSelect(selectedIndex) {
+            const q = quizData[currentQuestionIndex];
+            const container = document.getElementById('options-container');
+            const optionButtons = container.children;
+
+            for (let btn of optionButtons) {
+                btn.onclick = null;
+            }
+
+            const isCorrect = q.options[selectedIndex].correct;
+
+            if (isCorrect) {
+                correctCount++;
+            } else {
+                wrongCount++;
+            }
+
+            q.options.forEach((opt, idx) => {
+                const btn = optionButtons[idx];
+                const resIcon = btn.querySelector('.result-icon');
+                resIcon.classList.remove('hidden');
+
+                if (opt.correct) {
+                    btn.classList.remove('border-apricot-200', 'bg-white');
+                    btn.classList.add('border-green-500', 'bg-green-50', 'text-green-900');
+                    resIcon.innerText = "O";
+                    resIcon.className = "result-icon font-bold text-base text-green-600";
+                } else if (idx === selectedIndex && !opt.correct) {
+                    btn.classList.remove('border-apricot-200', 'bg-white');
+                    btn.classList.add('border-red-400', 'bg-red-50', 'text-red-900');
+                    resIcon.innerText = "X";
+                    resIcon.className = "result-icon font-bold text-base text-red-500";
+                }
+            });
+
+            const btnNext = document.getElementById('btn-next-question');
+            btnNext.classList.remove('hidden');
+
+            if (currentQuestionIndex === quizData.length - 1) {
+                btnNext.innerText = "결과 보러 가기";
+                btnNext.onclick = showResultPage;
+            } else {
+                btnNext.innerText = "다음 문제";
+                btnNext.onclick = () => {
+                    currentQuestionIndex++;
+                    loadQuestion();
+                };
+            }
+        }
+
+        // --- 7. Result Page Logic ---
+        function showResultPage() {
+            showView('result');
+            const score = Math.round((correctCount / quizData.length) * 100);
+            const scoreText = document.getElementById('result-score-text');
+            const resultMsg = document.getElementById('result-message');
+
+            scoreText.innerText = `${score}점 (${correctCount} / ${quizData.length})`;
+
+            if (correctCount >= 8) {
+                resultMsg.innerHTML = `<strong class="text-green-600">합격이다.</strong><br>생각보다 스스로를 잘 알고 있네.`;
+            } else {
+                resultMsg.innerHTML = `<strong class="text-amber-600">불합격이다.</strong><br>바보네. 더 노력하도록.`;
+            }
+        }
+
+        document.getElementById('btn-submit-code').addEventListener('click', verifyCode);
+        document.getElementById('code-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') verifyCode();
+        });
+
+        function verifyCode() {
+            const input = document.getElementById('code-input').value.trim();
+            const errorMsg = document.getElementById('code-error');
+
+            if (input === '060923') {
+                errorMsg.classList.add('hidden');
+                initCountdownPage();
+            } else if (input === '040522') {
+                errorMsg.classList.add('hidden');
+                triggerBirthdayCelebration();
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        // --- 8. Countdown Logic ---
+        function initCountdownPage() {
+            showView('countdown');
+            startCountdown();
+        }
+
+        function startCountdown() {
+            const targetDate = new Date('2026-09-23T00:00:00+09:00').getTime();
+
+            function updateTimer() {
+                const now = new Date().getTime();
+                const diff = targetDate - now;
+
+                if (diff <= 0) {
+                    clearInterval(timerInterval);
+                    triggerBirthdayCelebration();
+                    return;
+                }
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                const timerElement = document.getElementById('countdown-timer');
+                if (timerElement) {
+                    timerElement.innerText = 
+                        `${String(days).padStart(2, '0')}일 ${String(hours).padStart(2, '0')}시간 ${String(minutes).padStart(2, '0')}분 ${String(seconds).padStart(2, '0')}초`;
+                }
+            }
+
+            updateTimer();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        document.getElementById('btn-skip-countdown').addEventListener('click', () => {
+            if (timerInterval) clearInterval(timerInterval);
+            triggerBirthdayCelebration();
+        });
+
+        // --- 9. Birthday Celebration Logic ---
+        function triggerBirthdayCelebration() {
+            showView('birthday');
+
+            if (typeof confetti === 'function') {
+                const duration = 2.5 * 1000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 4,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: ['#FF8C69', '#FFDAB9', '#FFA07A', '#FF7F50']
+                    });
+                    confetti({
+                        particleCount: 4,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: ['#FF8C69', '#FFDAB9', '#FFA07A', '#FF7F50']
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                })();
+            }
+        }
+    </script>
+</body>
+</html>
