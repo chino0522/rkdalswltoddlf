@@ -69,7 +69,7 @@
         <div id="app-container" class="w-full max-w-lg bg-white/95 backdrop-blur-sm rounded-3xl p-6 sm:p-8 card-shadow border border-apricot-200 transition-all duration-300">
             
             <!-- 1. LANDING PAGE -->
-            <div id="view-landing" class="space-y-6 text-center py-4">
+            <div id="view-landing" class="hidden space-y-6 text-center py-4">
                 <div>
                     <h1 class="text-3xl sm:text-4xl font-extrabold text-apricot-900 mt-2 mb-2 leading-tight">
                         민지 능력 시험
@@ -195,7 +195,7 @@
             </div>
 
             <!-- 5. BIRTHDAY CELEBRATION PAGE -->
-            <div id="view-birthday" class="hidden space-y-6 text-center py-2">
+            <div id="view-birthday" class="space-y-6 text-center py-2">
                 <div class="space-y-2">
                     <h1 class="text-2xl sm:text-3xl font-black text-apricot-900 leading-tight">
                         생일 축하해
@@ -258,6 +258,7 @@
 
     <!-- JavaScript Logic -->
     <script>
+        
         // --- 1. Quiz Data Definition ---
         const quizData = [
             {
@@ -572,11 +573,6 @@
             timerInterval = setInterval(updateTimer, 1000);
         }
 
-        document.getElementById('btn-skip-countdown').addEventListener('click', () => {
-            if (timerInterval) clearInterval(timerInterval);
-            triggerBirthdayCelebration();
-        });
-
         // --- 9. Birthday Celebration Logic ---
         function triggerBirthdayCelebration() {
             showView('birthday');
@@ -607,6 +603,9 @@
                 })();
             }
         }
+
+        // 페이지 로드 시 바로 생일 페이지 표시
+        triggerBirthdayCelebration();
     </script>
 </body>
 </html>
